@@ -9,14 +9,15 @@ public class Board : MonoBehaviour
     public GameObject Capsule;
     public GameObject Cylinder;
     public GameObject Sphere;
-    public GameObject Plane;
+    //public GameObject Plane;
 
     public List<GameObject> shapes = new List<GameObject>(); // a list for storing the different shapes that can be shown in one grid block (row, column)
 
-    public int vertical;
-    public int horizontal; // will hold the verical and horizontal size of our screen based off orthographic camera;
+    //public int vertical;
+    //public int horizontal; // will hold the verical and horizontal size of our screen based off orthographic camera;
 
-    public int[,] Grid; //2D array that represent grid structure 
+    public GameObject backgroundTile; // this is the tile piece to set up the game board.
+    public GameObject[,] Grid; //2D array that represent grid structure 
     
     public int rows;
     public int columns; // rows and columns of the grid
@@ -28,21 +29,11 @@ public class Board : MonoBehaviour
         shapes.Add(Capsule);
         shapes.Add(Cylinder);
         shapes.Add(Sphere); // adding all the possible shapes to my list
-
-        vertical = (int)Camera.main.orthographicSize;
-        horizontal = vertical * (Screen.width / Screen.height);
-
-        GameObject board_background = Instantiate(Plane) as GameObject;
-        board_background.transform.position = new Vector3(4, vertical, 250f);
-
-        //rows = vertical * 2;
-        //columns = horizontal * 2;
-
         
         rows = 9;
         columns = 9;
 
-        Grid = new int[rows, columns];
+        Grid = new GameObject[rows, columns];
 
         int shapeIdx; 
 
@@ -50,18 +41,40 @@ public class Board : MonoBehaviour
         {
             for(int j = 0; j < columns; j++)
             {
-                shapeIdx = Random.Range(0, 4); // random index for selecting shpae from list
+                Vector2 pos = new Vector2(i, j);
 
-                GameObject shape = Instantiate(shapes.ElementAt(shapeIdx)) as GameObject; // creates clone of shape selected
+                GameObject bgTile = Instantiate(backgroundTile, pos, Quaternion.identity); // creating a tile with the postion of the array and quaternion.idneitity means no rotation. 
 
-                shape.name = shape.name + " [" + i + ", " + j + "]";
+                bgTile.transform.parent = transform;
 
-                shape.transform.position = new Vector3(i, j, 5); //changes the position of the shape to the postion of the 2D array created
-            } //- (vertical - 0.5f) & - (horizontal - 0.5f)
+                bgTile.name = "Tile - [" + i + ", " + j + "]";
+
+                shapeIdx = Random.Range(0, 4); // random index for selecting shape from list
+
+                SpawnShape(new Vector2Int(i, j), shapes.ElementAt(shapeIdx));
+            } 
         }
        
     }
 
+    void SpawnShape(Vector2Int spawnPos, GameObject shapeToSpawn)
+    {
+        GameObject shp = Instantiate(shapeToSpawn, new Vector3(spawnPos.x, spawnPos.y), Quaternion.identity);
+        shp.transform.parent = this.transform;
+        shp.name = "Shape -" + spawnPos.x + "," + spawnPos.y;
+        Grid[spawnPos.x, spawnPos.y] = shp;
+
+        //SetupShape(spawnPos, this);
+    }
+
+    public Vector2Int posIndex;
+    public Board board; 
+
+    public void SetupShape (Vector2Int pos, Board Board)
+    {
+        posIndex = pos;
+        board = Board; 
+    }
     // Update is called once per frame
     void Update()
     {
